@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" initialize="init()" width="400" height="400">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			/*
+			Variables
+			*/
+			private var _objSourceFile:File;
+			private var _bolError:Boolean;
+			
+			/*
+			Initiaize app.
+			*/
+			private function init():void
+			{
+			}
+			
+			/*
+			Selects a directory to be used.
+			*/
+			private function openFile():void
+			{
+				
+				txtSource.text = "";
+				this._bolError = false;
+				objCanvas.selectedIndex = 0;
+				this._objSourceFile = new File;
+				this._objSourceFile.browseForDirectory("Source directory:");
+				this._objSourceFile.addEventListener(Event.SELECT, sourceFileSelected);
+				
+			}
+			
+			
+			private function sourceFileSelected($e:Event):void
+			{
+				
+				this._objSourceFile = $e.target as File;
+				txtSource.text = this._objSourceFile.nativePath;
+				
+			}
+			
+			
+			/* 
+			Called when the strip button is pressed.
+			*/
+			private function stripFiles():void
+			{
+				
+				recursiveSearch(this._objSourceFile);
+				
+			}
+			
+			
+			/* 
+			Recurse into folders and reemove all .svn files.
+			*/
+			private function recursiveSearch($file:File):void
+			{
+				
+				var arr:Array = $file.getDirectoryListing();
+				for (var i:uint = 0; i < arr.length; i++)
+				{
+					
+					var value:File = arr[i];
+					if(value.name == ".svn")
+					{
+						
+						try
+						{
+							
+							value.deleteDirectory(true);
+							
+						}
+						catch($e:Error)
+						{
+							
+							this._bolError = true;
+							break;
+							
+						}
+						
+					}
+					else
+					{
+						
+						if (value.isDirectory)
+						{
+							
+							recursiveSearch(value);
+						}
+						
+					}
+					
+				}
+				
+				objCanvas.selectedIndex = (this._bolError)?2:1;
+				
+			}
+			
+			
+			/* 
+			Restart
+			*/
+			private function doReturn():void
+			{
+				
+				objCanvas.selectedIndex = 0;
+				txtSource.text = "";
+				
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	
+	<mx:ViewStack id="objCanvas" width="100%" height="110%" selectedIndex="0" backgroundColor="0xcccccc">
+		<mx:Canvas label="stkStart" width="100%" height="100%"  >
+			<s:VGroup verticalAlign="top" horizontalAlign="left" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10">
+				<s:Label text="Strip SVN" fontWeight="bold" fontSize="20" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+				</s:VGroup>
+			<s:VGroup verticalAlign="middle" horizontalAlign="center" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10">
+				<s:Label text="Source directory:" fontWeight="bold"/>
+				<s:TextInput width="100%" id="txtSource" editable="false" enabled="true"/>
+				<mx:Button label="SELECT" id="btnOpen" click="openFile()" />
+				</s:VGroup>
+			<s:VGroup verticalAlign="bottom" horizontalAlign="center" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10">
+				<s:Button label="STRIP IT" id="btnCrunch" click="stripFiles()" width="100%" height="70"/>
+				</s:VGroup>
+		</mx:Canvas>
+		<mx:Canvas label="stkResult" width="100%" height="100%">
+			<s:VGroup verticalAlign="top" horizontalAlign="left" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10">
+				<s:Label text="Strip SVN" fontWeight="bold" fontSize="20" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+				</s:VGroup>
+			<s:VGroup verticalAlign="middle" horizontalAlign="center" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10">
+				<s:TextArea x="10" y="10" width="258" height="59" text="Directory successfully stripped of SVN files." editable="false" textAlign="center"/>
+				<s:Button x="77" y="77" label="SELECT ANOTHER" id="btnOpenAnother" click="openFile()" />
+				</s:VGroup>
+		</mx:Canvas>
+		<mx:Canvas label="stkError" width="100%" height="100%">
+			<s:VGroup verticalAlign="top" horizontalAlign="left" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10">
+				<s:Label text="Strip SVN" fontWeight="bold" fontSize="20" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"/>
+				</s:VGroup>
+			<s:VGroup verticalAlign="middle" horizontalAlign="center" width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10">
+				<s:TextArea x="10" y="10" width="258" height="59" text="POSSIBLE ERRORS&#xd;-Select a valid / existing directory.&#xd;-SVN files may be locked." editable="false" />
+				<s:Button x="103.5" y="77" label="RETURN" id="btnReturn" click="doReturn()" />
+				</s:VGroup>
+		</mx:Canvas>
+	</mx:ViewStack>
+	
+</s:WindowedApplication>
